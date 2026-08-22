@@ -1,0 +1,7 @@
+{
+  "name": "MCQ Generator",
+  "description": "Educational MCQ generator with Math & Chemistry OCR, diagram extraction, LaTeX rendering, Question Bank & Custom PDF Paper Generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
