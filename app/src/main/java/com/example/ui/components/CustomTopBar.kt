@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -18,6 +19,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +30,7 @@ fun CustomTopBar(
     title: String,
     onBackClick: (() -> Unit)? = null,
     onThemeClick: (() -> Unit)? = null,
+    onCloudClick: (() -> Unit)? = null,
     badgeCount: Int = 0,
     actions: @Composable () -> Unit = {}
 ) {
@@ -54,6 +57,18 @@ fun CustomTopBar(
         },
         actions = {
             actions()
+            if (onCloudClick != null) {
+                IconButton(
+                    onClick = onCloudClick,
+                    modifier = Modifier.testTag("top_bar_cloud_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CloudDone,
+                        contentDescription = "Firebase Cloud Status",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             if (onThemeClick != null) {
                 IconButton(onClick = onThemeClick) {
                     Icon(

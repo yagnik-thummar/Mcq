@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Functions
@@ -72,11 +74,13 @@ fun DashboardScreen(
     onNavigateToPaperConfig: () -> Unit,
     onNavigateToPdfPreview: (GeneratedPaperEntity) -> Unit,
     onThemeClick: () -> Unit,
+    onFirebaseClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val questions by viewModel.rawQuestions.collectAsStateWithLifecycle()
     val papers by viewModel.rawPapers.collectAsStateWithLifecycle()
+    val firebaseInfo by viewModel.firebaseConnectionInfo.collectAsStateWithLifecycle()
 
     val mathCount = questions.count { it.subject.equals(SubjectEnum.MATHEMATICS.name, ignoreCase = true) }
     val chemCount = questions.count { it.subject.equals(SubjectEnum.CHEMISTRY.name, ignoreCase = true) }
@@ -90,7 +94,8 @@ fun DashboardScreen(
     ) {
         CustomTopBar(
             title = "MCQ Paper Generator",
-            onThemeClick = onThemeClick
+            onThemeClick = onThemeClick,
+            onCloudClick = onFirebaseClick
         )
 
         LazyColumn(
@@ -259,6 +264,99 @@ fun DashboardScreen(
                         SubjectPill("Chem", chemCount, Color(0xFF06B6D4), modifier = Modifier.weight(1f))
                         SubjectPill("Physics", physCount, Color(0xFFF59E0B), modifier = Modifier.weight(1f))
                         SubjectPill("Biology", bioCount, Color(0xFF10B981), modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+
+            // Firebase Cloud Connection Card
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { onFirebaseClick() }
+                        .testTag("dashboard_firebase_card"),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (firebaseInfo.isInitialized)
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    border = CardDefaults.outlinedCardBorder()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (firebaseInfo.isInitialized)
+                                            Color(0xFFE8F5E9)
+                                        else
+                                            MaterialTheme.colorScheme.surface
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (firebaseInfo.isInitialized) Icons.Default.CloudDone else Icons.Default.CloudSync,
+                                    contentDescription = null,
+                                    tint = if (firebaseInfo.isInitialized) Color(0xFF2E7D32) else MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Firebase Cloud Integration",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = if (firebaseInfo.isInitialized) Color(0xFF2E7D32) else MaterialTheme.colorScheme.secondary
+                                    ) {
+                                        Text(
+                                            text = if (firebaseInfo.isInitialized) "ACTIVE" else "READY",
+                                            color = Color.White,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = if (firebaseInfo.projectId != null)
+                                        "Project: ${firebaseInfo.projectId} • Tap to test ping & sync"
+                                    else
+                                        "Tap to test connection & sync question bank",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = "Open Firebase Status",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
             }

@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.components.FirebaseConnectionDialog
 import com.example.ui.components.ThemeSelectorSheet
 import com.example.ui.screens.DashboardScreen
 import com.example.ui.screens.OcrScannerScreen
@@ -57,12 +58,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            com.google.firebase.FirebaseApp.initializeApp(applicationContext)
+        } catch (e: Exception) {
+            android.util.Log.w("MainActivity", "Firebase auto-init skipped: ${e.message}")
+        }
         enableEdgeToEdge()
 
         setContent {
             val activeTheme by viewModel.appThemeMode.collectAsStateWithLifecycle()
             var currentScreen by remember { mutableStateOf(AppScreen.DASHBOARD) }
             var showThemeSheet by remember { mutableStateOf(false) }
+            var showFirebaseDialog by remember { mutableStateOf(false) }
 
             McqGeneratorTheme(appThemeMode = activeTheme) {
                 Scaffold(
@@ -128,7 +135,8 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToPdfPreview = { _ ->
                                         currentScreen = AppScreen.PDF_PREVIEW
                                     },
-                                    onThemeClick = { showThemeSheet = true }
+                                    onThemeClick = { showThemeSheet = true },
+                                    onFirebaseClick = { showFirebaseDialog = true }
                                 )
 
                                 AppScreen.OCR_SCANNER -> OcrScannerScreen(
@@ -167,6 +175,13 @@ class MainActivity : ComponentActivity() {
                             activeTheme = activeTheme,
                             onSelectTheme = { viewModel.appThemeMode.value = it },
                             onDismiss = { showThemeSheet = false }
+                        )
+                    }
+
+                    if (showFirebaseDialog) {
+                        FirebaseConnectionDialog(
+                            viewModel = viewModel,
+                            onDismiss = { showFirebaseDialog = false }
                         )
                     }
                 }

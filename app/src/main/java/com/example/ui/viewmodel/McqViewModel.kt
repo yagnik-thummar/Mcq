@@ -8,6 +8,10 @@ import com.example.ai.GeminiOcrService
 import com.example.ai.OcrExtractionResult
 import com.example.data.AppDatabase
 import com.example.data.DifficultyLevel
+import com.example.data.FirebaseConnectionInfo
+import com.example.data.FirebaseSyncManager
+import com.example.data.FirebaseSyncResult
+import com.example.data.FirebaseTestResult
 import com.example.data.GeneratedPaperEntity
 import com.example.data.QuestionEntity
 import com.example.data.QuestionRepository
@@ -291,6 +295,47 @@ class McqViewModel(application: Application) : AndroidViewModel(application) {
             previewSolutionBitmaps.value = solBitmaps
             isRenderingPreview.value = false
         }
+    }
+
+    // Firebase Cloud State
+    val firebaseSyncManager = FirebaseSyncManager(application)
+    private val _firebaseConnectionInfo = MutableStateFlow(firebaseSyncManager.getConnectionInfo())
+    val firebaseConnectionInfo: StateFlow<FirebaseConnectionInfo> = _firebaseConnectionInfo.asStateFlow()
+
+    private val _firebaseTestState = MutableStateFlow<FirebaseTestResult>(FirebaseTestResult.Idle)
+    val firebaseTestState: StateFlow<FirebaseTestResult> = _firebaseTestState.asStateFlow()
+
+    private val _firebaseSyncState = MutableStateFlow<FirebaseSyncResult>(FirebaseSyncResult.Idle)
+    val firebaseSyncState: StateFlow<FirebaseSyncResult> = _firebaseSyncState.asStateFlow()
+
+    fun refreshFirebaseInfo() {
+        _firebaseConnectionInfo.value = firebaseSyncManager.getConnectionInfo()
+    }
+
+    fun testFirebaseCloudConnection() {
+        viewModelScope.launch {
+            _firebaseTestState.value = FirebaseTestResult.InProgress
+            val result = firebaseSyncManager.testConnection()
+            _firebaseTestState.value = result
+            refreshFirebaseInfo()
+        }
+    }
+
+    fun resetFirebaseTestState() {
+        _firebaseTestState.value = FirebaseTestResult.Idle
+    }
+
+    fun backupQuestionsToCloud() {
+        viewModelScope.launch {
+            _firebaseSyncState.value = FirebaseSyncResult.InProgress
+            val currentQuestions = rawQuestions.value
+            val result = firebaseSyncManager.backupQuestionsToCloud(currentQuestions)
+            _firebaseSyncState.value = result
+        }
+    }
+
+    fun resetFirebaseSyncState() {
+        _firebaseSyncState.value = FirebaseSyncResult.Idle
     }
 
     fun deletePaper(paper: GeneratedPaperEntity) {
