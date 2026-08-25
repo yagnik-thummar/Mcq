@@ -49,11 +49,35 @@ class FirebaseSyncManager(private val context: Context) {
                 true
             } else {
                 val app = FirebaseApp.initializeApp(context)
-                app != null
+                if (app != null) {
+                    true
+                } else {
+                    // Fallback to explicit options from google-services.json
+                    val options = FirebaseOptions.Builder()
+                        .setApplicationId("1:1056720499379:android:0fe0dfa4b06599163076c6")
+                        .setApiKey("AIzaSyDk_ob4Ab4JxFn2NcQnyKmTd7x80AVmHzM")
+                        .setProjectId("mcqdata-e8d9b")
+                        .setGcmSenderId("1056720499379")
+                        .setStorageBucket("mcqdata-e8d9b.firebasestorage.app")
+                        .build()
+                    FirebaseApp.initializeApp(context, options) != null
+                }
             }
         } catch (e: Exception) {
-            Log.w(tag, "FirebaseApp.initializeApp failed: ${e.message}")
-            false
+            Log.w(tag, "FirebaseApp.initializeApp attempt 1 failed: ${e.message}, trying explicit options...")
+            try {
+                val options = FirebaseOptions.Builder()
+                    .setApplicationId("1:1056720499379:android:0fe0dfa4b06599163076c6")
+                    .setApiKey("AIzaSyDk_ob4Ab4JxFn2NcQnyKmTd7x80AVmHzM")
+                    .setProjectId("mcqdata-e8d9b")
+                    .setGcmSenderId("1056720499379")
+                    .setStorageBucket("mcqdata-e8d9b.firebasestorage.app")
+                    .build()
+                FirebaseApp.initializeApp(context, options) != null
+            } catch (e2: Exception) {
+                Log.e(tag, "Explicit FirebaseApp initialization failed: ${e2.message}")
+                false
+            }
         }
     }
 
